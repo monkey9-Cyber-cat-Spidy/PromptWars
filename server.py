@@ -29,8 +29,18 @@ except Exception:
 # ── Configuration ────────────────────────────────────────────────
 class Settings(BaseSettings):
     gemini_api_key: str = ""
+    maps_api_key: str = ""
     port: int = 8080
     model_name: str = "gemini-3.1-flash-lite-preview"
+    
+    # Firebase configuration (Exposed to frontend)
+    firebase_api_key: str = ""
+    firebase_auth_domain: str = ""
+    firebase_project_id: str = ""
+    firebase_storage_bucket: str = ""
+    firebase_messaging_sender_id: str = ""
+    firebase_app_id: str = ""
+    firebase_measurement_id: str = ""
     
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -85,6 +95,23 @@ async def root():
 async def health():
     """Health check endpoint for Cloud Run."""
     return {"status": "ok", "service": "StadiumSmart", "sdk": "google-generativeai"}
+
+
+@app.get("/api/config")
+async def get_config():
+    """Expose public API keys to the frontend."""
+    return {
+        "maps_api_key": settings.maps_api_key,
+        "firebase": {
+            "apiKey": settings.firebase_api_key,
+            "authDomain": settings.firebase_auth_domain,
+            "projectId": settings.firebase_project_id,
+            "storageBucket": settings.firebase_storage_bucket,
+            "messagingSenderId": settings.firebase_messaging_sender_id,
+            "appId": settings.firebase_app_id,
+            "measurementId": settings.firebase_measurement_id
+        }
+    }
 
 
 @app.post("/api/chat", response_model=ChatResponse)

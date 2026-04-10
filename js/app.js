@@ -5,14 +5,33 @@ import { initMap, getTransitInfo } from './map.js';
 import { sendMessage, getSuggestedQuestions, clearHistory } from './gemini.js';
 import { GATES, AMENITIES, FAQ } from './data.js';
 
+// Firebase SDKs
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+import { getRemoteConfig, fetchAndActivate, getString } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-remote-config.js";
+
 // ─── State ──────────────────────────────────────────────────────────────────
 let currentSection = 'dashboard';
 let chatInitialized = false;
 let mapLoaded = false;
 let crowdRefreshTimer = null;
+let appConfig = { maps_api_key: '' };
 
 // ─── Init ────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // Fetch config from backend (Zero Client-Side Keys policy)
+  try {
+    const res = await fetch('/api/config');
+    appConfig = await res.json();
+    
+    // Initialize Firebase
+    if (appConfig.firebase && appConfig.firebase.apiKey) {
+      initFirebase(appConfig.firebase);
+    }
+  } catch (err) {
+    console.warn("Configuration fetch failed:", err);
+  }
+
   initCrowd();
   setupNavigation();
   renderDashboard();
@@ -20,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
   appendWelcomeMessage();
   updateGreeting();
   renderExperience();
+  checkRemoteConfigAlerts();
 
   // Refresh crowd data every 30 seconds
   crowdRefreshTimer = setInterval(() => {
@@ -58,6 +78,14 @@ function setupNavigation() {
 function navigateTo(section) {
   currentSection = section;
 
+  // Firebase Analytics: Log screen view
+  if (window.stadiumSmart?.analytics) {
+    window.stadiumSmart.logEvent(window.stadiumSmart.analytics, 'screen_view', {
+      firebase_screen: section,
+      firebase_screen_class: 'SPA_Section'
+    });
+  }
+
   // Update nav active state
   document.querySelectorAll('[data-nav]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.nav === section);
@@ -75,8 +103,7 @@ function navigateTo(section) {
       break;
     case 'map':
       if (!mapLoaded) {
-        const mapsKey = document.getElementById('maps-key-input')?.value?.trim() || '';
-        initMap('map-container', mapsKey);
+        initMap('map-container', appConfig.maps_api_key);
         renderTransitInfo();
         mapLoaded = true;
       }
@@ -235,6 +262,13 @@ async function submitChat() {
   // Hide suggested questions after first message
   const sq = document.getElementById('suggested-questions');
   if (sq) sq.style.display = 'none';
+
+  // Firebase Analytics: Log chat message
+  if (window.stadiumSmart?.analytics) {
+    window.stadiumSmart.logEvent(window.stadiumSmart.analytics, 'search', {
+      search_term: text
+    });
+  }
 
   // Show typing indicator
   const typingId = appendTypingIndicator(messages);
@@ -427,4 +461,64 @@ function appendWelcomeMessage() {
     </div>
   `;
   messages.appendChild(el);
+}
+async function checkRemoteConfigAlerts() {
+  if (!window.stadiumSmart?.remoteConfig) return;
+  
+  try {
+    const { fetchAndActivate, getString, remoteConfig } = window.stadiumSmart;
+    await fetchAndActivate(remoteConfig);
+    const alert = getString(remoteConfig, 'venue_alert');
+    
+    if (alert && alert.trim()) {
+      showGlobalAlert(alert);
+    }
+  } catch (err) {
+    console.warn("Remote Config failed:", err);
+  }
+}
+
+function showGlobalAlert(message) {
+  const alertEl = document.createElement('div');
+  alertEl.className = 'global-alert-banner';
+  alertEl.role = 'alert';
+  alertEl.innerHTML = `
+    <span class="alert-icon">⚠️</span>
+    <span class="alert-text">${message}</span>
+    <button class="alert-close" aria-label="Close alert">×</button>
+  `;
+  document.body.prepend(alertEl);
+  
+  alertEl.querySelector('.alert-close').addEventListener('click', () => {
+    alertEl.remove();
+  });
+}
+/**
+ * Initialize Firebase services using fetched configuration
+ */
+function initFirebase(config) {
+  try {
+    const app = initializeApp(config);
+    const analytics = getAnalytics(app);
+    const remoteConfig = getRemoteConfig(app);
+    
+    remoteConfig.settings.minimumFetchIntervalMillis = 3600000;
+    
+    // Set global access for other modules
+    window.stadiumSmart = { 
+      analytics, 
+      remoteConfig, 
+      logEvent, 
+      getString, 
+      fetchAndActivate 
+    };
+    
+    console.log("StadiumSmart: Firebase Initialized (Dynamic)");
+    logEvent(analytics, 'app_initialized');
+    
+    // Immediate check after init
+    checkRemoteConfigAlerts();
+  } catch (e) {
+    console.error("Firebase dynamic init error:", e);
+  }
 }
