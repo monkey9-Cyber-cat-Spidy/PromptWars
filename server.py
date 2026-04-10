@@ -66,14 +66,16 @@ async def health():
 async def chat(req: ChatRequest):
     """
     Proxy chat requests to the Gemini API server-side.
-    The API key is read from the GEMINI_API_KEY environment variable.
-    This keeps the key off the client-side entirely.
+    Keeps the API key secure on the backend.
     """
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if not api_key:
-        raise HTTPException(
+        return JSONResponse(
             status_code=503,
-            detail="Gemini API key not configured on server. Set GEMINI_API_KEY env var.",
+            content={
+                "reply": "⚠️ Assistant is currently offline (API key not configured on server).",
+                "status": "error"
+            }
         )
 
     endpoint = (
@@ -82,6 +84,7 @@ async def chat(req: ChatRequest):
     )
 
     # Build contents from history + new message
+    # Ensure history follows [user, model, user, model] pattern
     contents = req.history + [{"role": "user", "parts": [{"text": req.message}]}]
 
     payload = {
@@ -91,34 +94,40 @@ async def chat(req: ChatRequest):
         "contents": contents,
         "generationConfig": {
             "temperature": 0.7,
-            "maxOutputTokens": 512,
+            "maxOutputTokens": 1024,
+            "topP": 0.95,
         },
     }
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=45.0) as client:
             response = await client.post(endpoint, json=payload)
-            response.raise_for_status()
-    except httpx.HTTPStatusError as exc:
-        raise HTTPException(
-            status_code=exc.response.status_code,
-            detail=f"Gemini API error: {exc.response.text}",
-        )
-    except httpx.RequestError as exc:
-        raise HTTPException(status_code=502, detail=f"Network error: {str(exc)}")
+            
+            if response.status_code != 200:
+                err_data = response.json()
+                msg = err_data.get("error", {}).get("message", "Unknown Gemini error")
+                return JSONResponse(
+                    status_code=response.status_code,
+                    content={"reply": f"🤖 Gemini Error: {msg}", "status": "error"}
+                )
+            
+            data = response.json()
+            reply_text = (
+                data.get("candidates", [{}])[0]
+                .get("content", {})
+                .get("parts", [{}])[0]
+                .get("text", "")
+            )
 
-    data = response.json()
-    reply_text = (
-        data.get("candidates", [{}])[0]
-        .get("content", {})
-        .get("parts", [{}])[0]
-        .get("text", "")
-    )
+            if not reply_text:
+                return ChatResponse(reply="I'm sorry, I couldn't generate a response. Please try again.", status="error")
 
-    if not reply_text:
-        raise HTTPException(status_code=500, detail="Empty response from Gemini")
+            return ChatResponse(reply=reply_text)
 
-    return ChatResponse(reply=reply_text)
+    except httpx.ReadTimeout:
+        return JSONResponse(status_code=504, content={"reply": "⏳ Request timed out. Gemini is taking too long to respond.", "status": "error"})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"reply": f"💥 Server Error: {str(e)}", "status": "error"})
 
 
 # ── Entry Point ────────────────────────────────────────────────────

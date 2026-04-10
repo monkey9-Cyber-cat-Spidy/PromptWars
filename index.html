@@ -29,9 +29,6 @@
           <div class="brand-tagline">MetroArena Stadium</div>
         </div>
       </div>
-      <button class="settings-btn" id="settings-btn" aria-label="Open API key settings" title="API Key Settings">
-        ⚙️
-      </button>
     </header>
 
     <!-- ── Main Content ────────────────────────────────────── -->
@@ -188,37 +185,6 @@
       </button>
     </nav>
 
-    <!-- ── API Key Modal (Bottom Sheet) ───────────────────── -->
-    <div id="api-key-overlay" role="dialog" aria-modal="true" aria-label="Configure API Keys">
-      <div class="api-key-sheet">
-        <div class="sheet-drag" aria-hidden="true"></div>
-        <h2 class="sheet-title">Setup StadiumSmart 🔑</h2>
-        <p class="sheet-desc">Enter your Gemini API key to activate the AI concierge. Your key stays in your browser only — never sent to our servers.</p>
-
-        <div class="input-group">
-          <label class="input-label" for="gemini-key-input">Gemini API Key</label>
-          <input
-            type="password"
-            id="gemini-key-input"
-            class="api-input"
-            placeholder="AIza…"
-            autocomplete="off"
-            spellcheck="false"
-            aria-describedby="gemini-key-hint"
-          />
-          <p class="api-hint" id="gemini-key-hint">
-            Get your free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com</a>
-          </p>
-        </div>
-
-        <button class="save-btn" id="save-api-key" aria-label="Save API key and start using StadiumSmart">
-          Activate StadiumSmart ✓
-        </button>
-        <span class="skip-link" id="skip-setup" role="button" tabindex="0" onclick="document.getElementById('api-key-overlay').classList.remove('visible')">
-          Skip for now (limited functionality)
-        </span>
-      </div>
-    </div>
 
   </div><!-- /#app -->
 

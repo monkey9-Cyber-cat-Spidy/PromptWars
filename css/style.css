@@ -191,6 +191,7 @@ body::before {
 }
 .nav-btn.active .nav-icon { transform: scale(1.1); }
 .nav-btn:hover:not(.active) { color: var(--text-primary); background: var(--bg-card-hover); }
+.nav-btn, .quick-action-btn, .save-btn, .suggestion-chip, .settings-btn { cursor: pointer; }
 
 /* ─── Glass Card ─────────────────────────────────────────────── */
 .glass-card {
@@ -644,85 +645,7 @@ body::before {
 details[open] .faq-question::after { content: '−'; color: var(--accent-green); }
 .faq-answer { padding: 0 16px 14px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
 
-/* ─── API Key Modal ───────────────────────────────────────────── */
-#api-key-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 500;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-}
-#api-key-overlay.visible {
-  opacity: 1;
-  pointer-events: all;
-}
-.api-key-sheet {
-  width: 100%;
-  max-width: var(--max-w);
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  padding: 28px 24px 40px;
-  transform: translateY(100%);
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-#api-key-overlay.visible .api-key-sheet {
-  transform: translateY(0);
-}
-.sheet-drag { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 24px; }
-.sheet-title {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-.sheet-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
-.input-group { margin-bottom: 14px; }
-.input-label { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; display: block; letter-spacing: 0.05em; text-transform: uppercase; }
-.api-input {
-  width: 100%;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 13px 16px;
-  color: var(--text-primary);
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.api-input:focus { border-color: var(--accent-green); }
-.api-input::placeholder { color: var(--text-muted); }
-.api-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
-.api-hint a { color: var(--accent-blue); text-decoration: underline; }
-.save-btn {
-  width: 100%;
-  background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-  color: #000;
-  font-weight: 700;
-  font-size: 15px;
-  padding: 15px;
-  border-radius: var(--radius-md);
-  margin-top: 8px;
-  transition: opacity 0.2s, transform 0.2s;
-  box-shadow: 0 4px 20px rgba(34,211,165,0.35);
-}
-.save-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-.skip-link {
-  display: block;
-  text-align: center;
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-top: 14px;
-  cursor: pointer;
-}
-.skip-link:hover { color: var(--text-secondary); }
+
 
 /* ─── Responsive / Accessibility ─────────────────────────────── */
 @media (min-width: 481px) {

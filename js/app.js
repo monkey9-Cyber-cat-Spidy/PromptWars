@@ -2,7 +2,7 @@
 
 import { initCrowd, refreshCrowd, getCrowdData, getCrowdLevelLabel } from './crowd.js';
 import { initMap, getTransitInfo } from './map.js';
-import { sendMessage, setApiKey, getApiKey, getSuggestedQuestions, clearHistory } from './gemini.js';
+import { sendMessage, getSuggestedQuestions, clearHistory } from './gemini.js';
 import { GATES, AMENITIES, FAQ } from './data.js';
 
 // ─── State ──────────────────────────────────────────────────────────────────
@@ -16,7 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initCrowd();
   setupNavigation();
   renderDashboard();
-  setupApiKeyModal();
+  setupChatInput();
+  appendWelcomeMessage();
+  renderExperience();
 
   // Refresh crowd data every 30 seconds
   crowdRefreshTimer = setInterval(() => {
@@ -158,11 +160,6 @@ function renderQuickActions() {
 // ─── Chat Assistant ───────────────────────────────────────────────────────────
 function initChat() {
   chatInitialized = true;
-  const key = getApiKey();
-  if (!key) {
-    showApiKeyModal();
-    return;
-  }
   renderSuggestedQuestions();
 }
 
@@ -211,13 +208,7 @@ async function submitChat() {
   const text = input.value.trim();
   if (!text) return;
 
-  const key = getApiKey();
-  if (!key) {
-    showApiKeyModal();
-    return;
-  }
-
-  // Append user message
+  // Backend now handles keys
   appendMessage('user', text, messages);
   input.value = '';
   input.disabled = true;
@@ -396,58 +387,6 @@ function renderExperience() {
   `;
 }
 
-// ─── API Key Modal ────────────────────────────────────────────────────────────
-function setupApiKeyModal() {
-  const saveBtn = document.getElementById('save-api-key');
-  if (saveBtn) {
-    saveBtn.addEventListener('click', () => {
-      const key = document.getElementById('gemini-key-input')?.value?.trim();
-      if (!key) return;
-      setApiKey(key);
-      localStorage.setItem('ss_gemini_key', key);
-      hideApiKeyModal();
-      renderSuggestedQuestions();
-      setupChatInput();
-      appendWelcomeMessage();
-    });
-  }
-
-  // Restore saved key
-  const saved = localStorage.getItem('ss_gemini_key');
-  if (saved) {
-    setApiKey(saved);
-    const inp = document.getElementById('gemini-key-input');
-    if (inp) inp.value = saved;
-    setupChatInput();
-  } else {
-    setupChatInput();
-  }
-
-  // Render experience section
-  renderExperience();
-
-  // Close modal on overlay click
-  const overlay = document.getElementById('api-key-overlay');
-  if (overlay) {
-    overlay.addEventListener('click', e => {
-      if (e.target === overlay) hideApiKeyModal();
-    });
-  }
-
-  // Settings gear click
-  const settingsBtn = document.getElementById('settings-btn');
-  if (settingsBtn) settingsBtn.addEventListener('click', showApiKeyModal);
-}
-
-function showApiKeyModal() {
-  const overlay = document.getElementById('api-key-overlay');
-  if (overlay) overlay.classList.add('visible');
-}
-
-function hideApiKeyModal() {
-  const overlay = document.getElementById('api-key-overlay');
-  if (overlay) overlay.classList.remove('visible');
-}
 
 function appendWelcomeMessage() {
   const messages = document.getElementById('chat-messages');

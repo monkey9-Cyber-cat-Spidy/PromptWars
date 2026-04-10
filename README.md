@@ -23,30 +23,36 @@ StadiumSmart solves all three in a single, lightweight application.
 
 ### Architecture
 
-```
-┌─────────────────────────────────────────────┐
-│          Browser (SPA – Pure HTML/JS)        │
-│                                              │
-│  Dashboard → Match Card + Gate Status        │
-│  Assistant → Gemini Chat (crowd-aware)       │
-│  Map       → Google Maps Embed               │
-│  Crowds    → Simulated Real-Time Intel       │
-│  Experience→ Personalized Seat Guide + FAQ   │
-└──────────────────────┬──────────────────────┘
-                       │ HTTPS
-          ┌────────────▼────────────┐
-          │   FastAPI Server        │
-          │   (Google Cloud Run)    │
-          │                         │
-          │  GET  /          → SPA  │
-          │  POST /api/chat  → AI   │
-          │  GET  /health    → ✓    │
-          └────────────┬────────────┘
-                       │
-          ┌────────────▼────────────┐
-          │   Google Gemini API     │
-          │   gemini-2.0-flash      │
-          └─────────────────────────┘
+```mermaid
+graph TD
+    classDef browser fill:#22d3ee,stroke:#0891b2,color:#000
+    classDef server fill:#a78bfa,stroke:#7c3aed,color:#fff
+    classDef google fill:#fbbf24,stroke:#d97706,color:#000
+
+    U[User Browser]:::browser
+    
+    subgraph SPA ["Frontend (Vanilla JS/CSS)"]
+        direction TB
+        D[Dashboard]
+        A[AI Assistant]
+        M[Venue Map]
+        C[Crowd Intel]
+    end
+
+    subgraph Proxy ["Backend (FastAPI)"]
+        F["/api/chat Proxy"]:::server
+    end
+
+    subgraph Google ["Cloud Services"]
+        G["Gemini API"]:::google
+        GM["Maps Embed API"]:::google
+    end
+
+    U --> D
+    U --> A
+    A -- "Secure HTTPS" --> F
+    F -- "GEMINI_API_KEY (Server-Side)" --> G
+    M -- "Client-Side Embed" --> GM
 ```
 
 ### How the AI Works
@@ -169,9 +175,7 @@ gcloud run deploy stadiumsmart \
 2. **Simulated Crowd Data**: Real deployments would integrate with venue management systems (ticketing APIs, sensor data) for actual crowd counts. The simulation uses realistic patterns (drift updates, bounded values).
 3. **Match Score**: Simulated cricket score. Real integration would use a sports data API (e.g., Cricbuzz API, SportMonks).
 4. **Ticket Data**: The "My Experience" section uses hardcoded seat data (Stand 15, Row G, Seat 24). Real deployment would authenticate users and fetch their ticket data.
-5. **API Key Modes**: 
-   - When running via FastAPI (`/api/chat` endpoint), the key is server-side via env var
-   - When opening as a static HTML file, users enter their Gemini key client-side (stored in `localStorage`, never transmitted to any server except Google)
+5. **Enterprise Security**: The application follows a "Zero Client-Side Keys" policy. All AI interactions are proxied through the server to protect intellectual property and API quotas.
 
 ---
 
@@ -202,7 +206,7 @@ StadiumSmart/
 | Criteria | Implementation |
 |---|---|
 | **Code Quality** | ES6 modules, clean separation of concerns, JSDoc-style comments, PEP 8 Python |
-| **Security** | API key never committed; client-side keys stored in `localStorage` only; server-side env-var mode available |
+| **Security** | Production-grade backend proxy; "Zero Client-Side Keys" architecture; API keys handled via environment variables only |
 | **Efficiency** | Zero npm dependencies; lazy-load map only when tab is opened; crowd data drifts (no full reload) |
 | **Testing** | Manual test checklist below; Pydantic validation on API models |
 | **Accessibility** | ARIA labels on all interactive elements, `role` attributes, `aria-live` regions, keyboard navigation, `prefers-reduced-motion` support, focus-visible styles |
@@ -210,21 +214,6 @@ StadiumSmart/
 
 ---
 
-## 🧪 Manual Test Checklist
-
-- [ ] Open `index.html` → dashboard renders with match card and gate badges
-- [ ] Gate badges show colour-coded crowd levels (green/amber/red)
-- [ ] Click "Crowd Intel" → all locations listed with wait bars
-- [ ] Wait 30 seconds → crowd data updates automatically
-- [ ] Click "Map" → Google Maps embed loads (stadium location)
-- [ ] Click "AI Assistant" → API key modal appears (if no saved key)
-- [ ] Enter Gemini key → welcome message appears
-- [ ] Click a suggested question → answer streams in
-- [ ] Manually type "Which gate has the shortest queue?" → Gemini responds with live data
-- [ ] Press Tab → all interactive elements receive visible focus
-- [ ] Resize to mobile (375px) → layout adapts correctly
-
----
 
 ## 📄 License
 
