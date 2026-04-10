@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderDashboard();
   setupChatInput();
   appendWelcomeMessage();
+  updateGreeting();
   renderExperience();
 
   // Refresh crowd data every 30 seconds
@@ -30,6 +31,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // Animate score every 90 seconds (simulate live match)
   setInterval(animateScore, 90000);
 });
+
+// ─── UI Helpers ──────────────────────────────────────────────────────────────
+function updateGreeting() {
+  const el = document.getElementById('greeting-title');
+  if (!el) return;
+
+  const hour = new Date().getHours();
+  let greeting = 'Good Evening!';
+  if (hour < 12) greeting = 'Good Morning!';
+  else if (hour < 18) greeting = 'Good Afternoon!';
+
+  el.textContent = `${greeting} 👋`;
+}
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 function setupNavigation() {
