@@ -302,8 +302,9 @@ function appendTypingIndicator(container) {
 }
 
 function formatMessage(text) {
-  // Basic markdown-lite: bold, bullets, line breaks
+  // Basic markdown-lite: links, bold, bullets, line breaks
   return text
+    .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/^- (.+)/gm, '<li>$1</li>')
