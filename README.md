@@ -125,40 +125,26 @@ StadiumSmart isn't just "built for" Google; it lives inside the ecosystem.
 
 | Service | Integration Level | Implementation Details |
 |---|---|---|
-| **Gemini 3.1 SDK** | **Core Intelligence** | Migrated to the official `google-generativeai` Python SDK for production-grade robustness. |
-| **Google Cloud Logging** | **Observability** | Native integration providing structured audit logs directly to Cloud Run / GCP Console. |
-| **Google Analytics 4** | **Usage Insights** | Integrated `gtag.js` for real-time attendee engagement telemetry. |
-| **Firebase SDK** | **Ecosystem Signaling** | Initialized standard hooks to support future feature expansions like Remote Config. |
-| **Maps Embed API** | **Spatial Context** | Interactive satellite venue visualization with POI context. |
-| **Google Fonts** | **Visual Identity** | `Inter` + `Space Grotesk` fonts for a premium, sport-tech aesthetic. |
-| **Google Cloud Run** | **Global Deployment** | Containerized FastAPI backend with environment-managed safety. |
+| **Gemini 3.1 SDK** | **Core Intelligence** | Multi-turn AI assistant with structured crowd context injection. |
+| **Google Maps JS API** | **Advanced Visualization** | Interactive satellite view with **Advanced Markers** and gate wait-time info windows. |
+| **Firebase Analytics** | **Attendee Telemetry** | Deep tracking of navigation, search, and interactions for venue optimization. |
+| **Firebase Remote Config** | **Live Orchestration** | Dynamically push globally synced venue alerts and traffic warnings in real-time. |
+| **Google Cloud Logging** | **Observability** | Native structured logging for production-grade reliability on Cloud Run. |
+| **Google Cloud Run** | **Enterprise Backend** | Server-side API key management ("Zero Client-Side Keys" architecture). |
 
 ---
 
 ## 🚀 Running Locally
 
-### Option A: Open Directly (No Server)
-
-The app works as a pure static site for demo purposes:
+### Option A: standard Deployment (Recommended)
 
 ```bash
-# Just open index.html in your browser
-# (Use a local server to avoid CORS issues with ES modules)
-python -m http.server 8080
-# Then visit http://localhost:8080
-```
-
-### Option B: FastAPI Server (Recommended)
-
-```bash
-# Install dependencies
+# 1. Install dependencies
 pip install -r requirements.txt
 
-# Set your API key (never hardcode it)
-export GEMINI_API_KEY="your_key_here"   # Linux/macOS
-set GEMINI_API_KEY=your_key_here         # Windows
+# 2. Add your keys to the .env file (see "Environment Variables" section)
 
-# Run the server
+# 3. Run the server
 python server.py
 
 # Visit http://localhost:8080
@@ -178,12 +164,12 @@ docker run -p 8080:8080 -e GEMINI_API_KEY=your_key stadiumsmart
 gcloud auth login
 gcloud config set project YOUR_PROJECT_ID
 
-# Build and deploy
+# Build and deploy with all required service keys
 gcloud run deploy stadiumsmart \
   --source . \
   --region us-central1 \
   --allow-unauthenticated \
-  --set-env-vars GEMINI_API_KEY=your_key
+  --set-env-vars GEMINI_API_KEY=your_key,MAPS_API_KEY=your_key,FIREBASE_API_KEY=your_key,FIREBASE_AUTH_DOMAIN=your_domain,FIREBASE_PROJECT_ID=your_id,FIREBASE_STORAGE_BUCKET=your_bucket,FIREBASE_MESSAGING_SENDER_ID=your_sender_id,FIREBASE_APP_ID=your_app_id,FIREBASE_MEASUREMENT_ID=your_measurement_id
 
 # Your app will be available at the Cloud Run URL
 ```
@@ -235,11 +221,25 @@ StadiumSmart/
 
 ---
 
+## 🔒 Environment Variables
 
-## 📄 License
+For both local development (`.env`) and Cloud Run deployment, the following variables are required:
 
-MIT License – see LICENSE file for details.
+| Variable | Source |
+|---|---|
+| `GEMINI_API_KEY` | Google AI Studio |
+| `MAPS_API_KEY` | Google Cloud Console (Maps JS API) |
+| `FIREBASE_API_KEY` | Firebase Project Settings |
+| `FIREBASE_AUTH_DOMAIN` | Firebase Project Settings |
+| `FIREBASE_PROJECT_ID` | Firebase Project Settings |
+| `FIREBASE_STORAGE_BUCKET` | Firebase Project Settings |
+| `FIREBASE_MESSAGING_SENDER_ID` | Firebase Cloud Messaging Settings |
+| `FIREBASE_APP_ID` | Firebase Web App Settings |
+| `FIREBASE_MEASUREMENT_ID` | GA4 Measurement / Firebase Settings |
+
+> [!IMPORTANT]
+> **Zero Client-Side Keys Policy**: This project is built with production security in mind. All the above keys are proxied via the backend to prevent exposure in the browser source code.
 
 ---
 
-*Built with ❤️ using Google Gemini API, Google Maps, FastAPI, and Pure HTML/CSS/JS.*
+*Built with ❤️ using Google Gemini API, Google Maps, Firebase, and FastAPI.*
