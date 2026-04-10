@@ -78,10 +78,7 @@ async def chat(req: ChatRequest):
             }
         )
 
-    endpoint = (
-        "https://generativelanguage.googleapis.com/v1beta/"
-        f"models/gemini-2.0-flash:generateContent?key={api_key}"
-    )
+    endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={api_key}"
 
     # Build contents from history + new message
     # Ensure history follows [user, model, user, model] pattern

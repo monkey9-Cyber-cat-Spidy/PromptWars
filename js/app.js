@@ -166,20 +166,24 @@ function initChat() {
 function renderSuggestedQuestions() {
   const el = document.getElementById('suggested-questions');
   if (!el) return;
-  el.innerHTML = getSuggestedQuestions().map(q => `
-    <button class="suggestion-chip" onclick="window.askQuestion(${JSON.stringify(q)})" aria-label="Ask: ${q}">
-      ${q}
-    </button>
-  `).join('');
+  
+  el.innerHTML = '';
+  getSuggestedQuestions().forEach(q => {
+    const btn = document.createElement('button');
+    btn.className = 'suggestion-chip';
+    btn.textContent = q;
+    btn.setAttribute('aria-label', `Ask: ${q}`);
+    btn.addEventListener('click', () => {
+      const input = document.getElementById('chat-input');
+      if (input) {
+        input.value = q;
+        submitChat();
+      }
+    });
+    el.appendChild(btn);
+  });
 }
 
-window.askQuestion = function(q) {
-  const input = document.getElementById('chat-input');
-  if (input) {
-    input.value = q;
-    submitChat();
-  }
-};
 
 function setupChatInput() {
   const form = document.getElementById('chat-form');
