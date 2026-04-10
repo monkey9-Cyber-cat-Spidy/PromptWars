@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="StadiumSmart – Your AI-powered concierge for MetroArena Stadium. Navigate the venue, beat the queues, and enjoy the match." />
+  <meta name="theme-color" content="#0a0e1a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="StadiumSmart – Smart Venue Assistant" />
+  <meta property="og:description" content="AI-powered stadium concierge for large sporting events. Real-time crowd data, navigation, and live match updates." />
+  <meta property="og:type" content="website" />
+
+  <title>StadiumSmart – Smart Venue Assistant</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app" role="application" aria-label="StadiumSmart Application">
+
+    <!-- ── Header ─────────────────────────────────────────── -->
+    <header class="app-header" role="banner">
+      <div class="header-brand">
+        <div class="brand-logo" aria-hidden="true">🏟️</div>
+        <div>
+          <div class="brand-name">StadiumSmart</div>
+          <div class="brand-tagline">MetroArena Stadium</div>
+        </div>
+      </div>
+      <button class="settings-btn" id="settings-btn" aria-label="Open API key settings" title="API Key Settings">
+        ⚙️
+      </button>
+    </header>
+
+    <!-- ── Main Content ────────────────────────────────────── -->
+    <main class="main-content" role="main" id="main-content">
+
+      <!-- ════ DASHBOARD ════ -->
+      <section class="section active" id="section-dashboard" aria-label="Dashboard">
+        <h1 class="page-title">Good Afternoon! 👋</h1>
+        <p class="page-subtitle">Today's match at MetroArena Stadium</p>
+
+        <!-- Live Match Card -->
+        <div id="match-card" role="region" aria-label="Live match score"></div>
+
+        <!-- Gate Crowd Badges -->
+        <p class="section-label" aria-hidden="true">Gate Status</p>
+        <div id="crowd-badges" role="region" aria-label="Current gate crowd levels" aria-live="polite"></div>
+
+        <!-- Quick Actions -->
+        <p class="section-label" aria-hidden="true">Quick Access</p>
+        <div id="quick-actions" role="navigation" aria-label="Quick navigation actions"></div>
+      </section>
+
+      <!-- ════ ASSISTANT ════ -->
+      <section class="section" id="section-assistant" aria-label="AI Assistant">
+        <h2 class="page-title">AI Concierge 🤖</h2>
+        <p class="page-subtitle">Ask anything about the venue</p>
+
+        <div class="chat-wrapper" role="region" aria-label="Chat interface">
+          <!-- Messages -->
+          <div
+            id="chat-messages"
+            role="log"
+            aria-live="polite"
+            aria-relevant="additions"
+            aria-label="Conversation history"
+          ></div>
+
+          <!-- Suggested Questions -->
+          <div id="suggested-questions" role="navigation" aria-label="Suggested questions"></div>
+
+          <!-- Input Form -->
+          <form id="chat-form" role="form" aria-label="Send a message to StadiumSmart">
+            <textarea
+              id="chat-input"
+              name="message"
+              placeholder="Ask about gates, food, queues, navigation…"
+              rows="1"
+              aria-label="Message input"
+              aria-multiline="false"
+              autocomplete="off"
+            ></textarea>
+            <button type="submit" id="send-btn" aria-label="Send message">
+              ➤
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ════ MAP ════ -->
+      <section class="section" id="section-map" aria-label="Venue Map">
+        <h2 class="page-title">Venue Map 🗺️</h2>
+        <p class="page-subtitle">MetroArena Stadium & surroundings</p>
+
+        <div class="map-wrapper">
+          <!-- Map Container -->
+          <div
+            id="map-container"
+            role="img"
+            aria-label="Interactive map of MetroArena Stadium location"
+          ></div>
+
+          <!-- Gates Reference -->
+          <p class="section-label" aria-hidden="true">Entry Gates</p>
+          <div class="gates-grid" role="list" aria-label="Venue gates">
+            <div class="gate-card" role="listitem">
+              <div class="gate-badge" aria-hidden="true">A</div>
+              <div class="gate-name">Gate A – North</div>
+              <div class="gate-meta">Stands 1–10<br>Parking P1, P2<br>🚇 Metro Station A</div>
+            </div>
+            <div class="gate-card" role="listitem">
+              <div class="gate-badge" aria-hidden="true">B</div>
+              <div class="gate-name">Gate B – South</div>
+              <div class="gate-meta">Stands 11–20<br>Parking P3<br>🚌 Bus Route 54</div>
+            </div>
+            <div class="gate-card" role="listitem">
+              <div class="gate-badge" aria-hidden="true">C</div>
+              <div class="gate-name">Gate C – VIP East</div>
+              <div class="gate-meta">VIP + Stands 21–25<br>Parking P4 (VIP)<br>🚇 Metro Station B</div>
+            </div>
+            <div class="gate-card" role="listitem">
+              <div class="gate-badge" aria-hidden="true">D</div>
+              <div class="gate-name">Gate D – West</div>
+              <div class="gate-meta">Stands 26–35<br>Parking P5, P6<br>🚌 Bus 12, 18</div>
+            </div>
+          </div>
+
+          <!-- Transit -->
+          <p class="section-label" aria-hidden="true">Getting Here</p>
+          <div class="transit-card">
+            <div class="transit-title">🚦 Transport Options</div>
+            <div id="transit-info" role="list" aria-label="Transport options to the stadium"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════ CROWD INTEL ════ -->
+      <section class="section" id="section-crowd" aria-label="Crowd Intelligence">
+        <div class="crowd-intel-header">
+          <h2 class="page-title" style="margin-bottom:0">Crowd Intel 👥</h2>
+          <div class="refresh-label" aria-live="polite" id="refresh-status">
+            <span class="refresh-dot" aria-hidden="true"></span>Live · Auto-refresh
+          </div>
+        </div>
+        <p class="page-subtitle">Real-time wait times & crowd levels</p>
+
+        <div
+          id="crowd-intel-grid"
+          role="list"
+          aria-label="Crowd levels and wait times by location"
+          aria-live="polite"
+        ></div>
+      </section>
+
+      <!-- ════ MY EXPERIENCE ════ -->
+      <section class="section" id="section-experience" aria-label="My Experience">
+        <h2 class="page-title">My Experience 🎟️</h2>
+        <p class="page-subtitle">Your personalized venue guide</p>
+        <div id="experience-content" role="region" aria-label="Personalized experience details"></div>
+      </section>
+
+    </main><!-- /main -->
+
+    <!-- ── Bottom Navigation ───────────────────────────────── -->
+    <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+      <button class="nav-btn active" data-nav="dashboard" id="nav-dashboard" aria-label="Dashboard" aria-current="page">
+        <span class="nav-icon" aria-hidden="true">🏠</span>
+        <span class="nav-label">Home</span>
+      </button>
+      <button class="nav-btn" data-nav="assistant" id="nav-assistant" aria-label="AI Assistant">
+        <span class="nav-icon" aria-hidden="true">🤖</span>
+        <span class="nav-label">Assistant</span>
+      </button>
+      <button class="nav-btn" data-nav="map" id="nav-map" aria-label="Venue Map">
+        <span class="nav-icon" aria-hidden="true">🗺️</span>
+        <span class="nav-label">Map</span>
+      </button>
+      <button class="nav-btn" data-nav="crowd" id="nav-crowd" aria-label="Crowd Intel">
+        <span class="nav-icon" aria-hidden="true">👥</span>
+        <span class="nav-label">Crowds</span>
+      </button>
+      <button class="nav-btn" data-nav="experience" id="nav-experience" aria-label="My Experience">
+        <span class="nav-icon" aria-hidden="true">🎟️</span>
+        <span class="nav-label">Mine</span>
+      </button>
+    </nav>
+
+    <!-- ── API Key Modal (Bottom Sheet) ───────────────────── -->
+    <div id="api-key-overlay" role="dialog" aria-modal="true" aria-label="Configure API Keys">
+      <div class="api-key-sheet">
+        <div class="sheet-drag" aria-hidden="true"></div>
+        <h2 class="sheet-title">Setup StadiumSmart 🔑</h2>
+        <p class="sheet-desc">Enter your Gemini API key to activate the AI concierge. Your key stays in your browser only — never sent to our servers.</p>
+
+        <div class="input-group">
+          <label class="input-label" for="gemini-key-input">Gemini API Key</label>
+          <input
+            type="password"
+            id="gemini-key-input"
+            class="api-input"
+            placeholder="AIza…"
+            autocomplete="off"
+            spellcheck="false"
+            aria-describedby="gemini-key-hint"
+          />
+          <p class="api-hint" id="gemini-key-hint">
+            Get your free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com</a>
+          </p>
+        </div>
+
+        <button class="save-btn" id="save-api-key" aria-label="Save API key and start using StadiumSmart">
+          Activate StadiumSmart ✓
+        </button>
+        <span class="skip-link" id="skip-setup" role="button" tabindex="0" onclick="document.getElementById('api-key-overlay').classList.remove('visible')">
+          Skip for now (limited functionality)
+        </span>
+      </div>
+    </div>
+
+  </div><!-- /#app -->
+
+  <!-- Modules -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
