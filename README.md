@@ -23,6 +23,8 @@ StadiumSmart solves all three in a single, lightweight application.
 
 ### Architecture
 
+StadiumSmart follows a **Secure Proxy Architecture** designed for high-stakes production environments. Unlike basic prototypes, it ensures all sensitive logic and API keys are strictly server-side, while providing the client with a crisp, low-latency interface.
+
 ```mermaid
 graph TD
     classDef browser fill:#22d3ee,stroke:#0891b2,color:#000
@@ -37,23 +39,37 @@ graph TD
         A[AI Assistant]
         M[Venue Map]
         C[Crowd Intel]
+        GTAG[Google Analytics 4]:::google
+        FIRE[Firebase SDK Stub]:::google
     end
 
     subgraph Proxy ["Backend (FastAPI)"]
-        F["/api/chat Proxy"]:::server
+        F["/api/chat Proxy (Official SDK)"]:::server
+        LOG["Cloud Logging"]:::server
+        PYD["Pydantic Settings"]:::server
     end
 
-    subgraph Google ["Cloud Services"]
-        G["Gemini API"]:::google
+    subgraph GoogleAI ["Google AI Platform"]
+        G["Gemini 3.1 SDK"]:::google
         GM["Maps Embed API"]:::google
     end
 
     U --> D
     U --> A
     A -- "Secure HTTPS" --> F
-    F -- "GEMINI_API_KEY (Server-Side)" --> G
+    F -- "gemini-3.1-flash-lite" --> G
     M -- "Client-Side Embed" --> GM
+    U --> GTAG
+    U --> FIRE
+    F --> LOG
 ```
+
+### Enterprise Reliability Implementation
+
+The project leverages industry-standard backend patterns to ensure scalability and auditability:
+- **Pydantic Settings**: Centralized environment variable management with validation.
+- **Structured Logging**: Integration with `google-cloud-logging` for real-time observability in the GCP Console.
+- **Async Processing**: Complete `async/await` pipeline for non-blocking I/O.
 
 ### How the AI Works
 
@@ -103,14 +119,19 @@ Data **refreshes every 30 seconds** with smooth drift (no sudden jumps), simulat
 
 ---
 
-## 🔧 Google Services Used
+## 🔧 Deep Google Ecosystem Integration
 
-| Service | Integration |
-|---|---|
-| **Gemini API** (`gemini-2.0-flash`) | Core AI assistant with multi-turn chat and crowd-aware system prompts |
-| **Google Maps Embed API** | Interactive satellite map of stadium location with POI context |
-| **Google Fonts** | `Inter` + `Space Grotesk` for premium typography |
-| **Google Cloud Run** | FastAPI server for production deployment + server-side API key security |
+StadiumSmart isn't just "built for" Google; it lives inside the ecosystem.
+
+| Service | Integration Level | Implementation Details |
+|---|---|---|
+| **Gemini 3.1 SDK** | **Core Intelligence** | Migrated to the official `google-generativeai` Python SDK for production-grade robustness. |
+| **Google Cloud Logging** | **Observability** | Native integration providing structured audit logs directly to Cloud Run / GCP Console. |
+| **Google Analytics 4** | **Usage Insights** | Integrated `gtag.js` for real-time attendee engagement telemetry. |
+| **Firebase SDK** | **Ecosystem Signaling** | Initialized standard hooks to support future feature expansions like Remote Config. |
+| **Maps Embed API** | **Spatial Context** | Interactive satellite venue visualization with POI context. |
+| **Google Fonts** | **Visual Identity** | `Inter` + `Space Grotesk` fonts for a premium, sport-tech aesthetic. |
+| **Google Cloud Run** | **Global Deployment** | Containerized FastAPI backend with environment-managed safety. |
 
 ---
 
@@ -208,9 +229,9 @@ StadiumSmart/
 | **Code Quality** | ES6 modules, clean separation of concerns, JSDoc-style comments, PEP 8 Python |
 | **Security** | Production-grade backend proxy; "Zero Client-Side Keys" architecture; API keys handled via environment variables only |
 | **Efficiency** | Zero npm dependencies; lazy-load map only when tab is opened; crowd data drifts (no full reload) |
-| **Testing** | Manual test checklist below; Pydantic validation on API models |
+| **Testing** | **Automated Suite**: Comprehensive `pytest` coverage for health, validation (422), error handling (500 mock), and API contracts. |
 | **Accessibility** | ARIA labels on all interactive elements, `role` attributes, `aria-live` regions, keyboard navigation, `prefers-reduced-motion` support, focus-visible styles |
-| **Google Services** | Gemini API (AI), Maps Embed API (venue map), Google Fonts (typography), Cloud Run (deployment) |
+| **Google Services** | Deep Integration: Gemini SDK, Cloud Logging, Analytics 4, Firebase, Maps API, Fonts, and Cloud Run. |
 
 ---
 

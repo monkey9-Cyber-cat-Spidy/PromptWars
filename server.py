@@ -1,23 +1,48 @@
 """
 StadiumSmart – FastAPI Backend
-Serves the static web app and proxies Gemini API calls server-side.
+Enterprise-grade backend with Google SDK integration and structured logging.
 Deployable to Google Cloud Run.
 """
 
 import os
 from pathlib import Path
+from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-import httpx
 from pydantic import BaseModel
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Official Google SDKs
+import google.generativeai as genai
+try:
+    import google.cloud.logging
+    logging_client = google.cloud.logging.Client()
+    logging_client.setup_logging()
+except Exception:
+    # Fallback for local development without GCP credentials
+    import logging
+    logging.basicConfig(level=logging.INFO)
+
+# ── Configuration ────────────────────────────────────────────────
+class Settings(BaseSettings):
+    gemini_api_key: str = ""
+    port: int = 8080
+    model_name: str = "gemini-3.1-flash-lite-preview"
+    
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+settings = Settings()
+
+if settings.gemini_api_key:
+    genai.configure(api_key=settings.gemini_api_key)
 
 app = FastAPI(
     title="StadiumSmart API",
-    description="Smart venue assistant backend for large sporting events",
-    version="1.0.0",
+    description="Smart venue assistant backend powered by Gemini 3.1",
+    version="1.1.0",
 )
 
 # ── CORS ─────────────────────────────────────────────────────────
@@ -37,7 +62,7 @@ app.mount("/js", StaticFiles(directory=str(STATIC_DIR / "js")), name="js")
 # ── Models ────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
     message: str
-    history: list[dict] = []
+    history: List[dict] = []
     system_context: str = ""
 
 
@@ -59,17 +84,15 @@ async def root():
 @app.get("/health")
 async def health():
     """Health check endpoint for Cloud Run."""
-    return {"status": "ok", "service": "StadiumSmart"}
+    return {"status": "ok", "service": "StadiumSmart", "sdk": "google-generativeai"}
 
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
     """
-    Proxy chat requests to the Gemini API server-side.
-    Keeps the API key secure on the backend.
+    Proxy chat requests to Gemini using the official Google SDK.
     """
-    api_key = os.environ.get("GEMINI_API_KEY", "")
-    if not api_key:
+    if not settings.gemini_api_key:
         return JSONResponse(
             status_code=503,
             content={
@@ -78,58 +101,46 @@ async def chat(req: ChatRequest):
             }
         )
 
-    endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={api_key}"
-
-    # Build contents from history + new message
-    # Ensure history follows [user, model, user, model] pattern
-    contents = req.history + [{"role": "user", "parts": [{"text": req.message}]}]
-
-    payload = {
-        "system_instruction": {
-            "parts": [{"text": req.system_context}] if req.system_context else [],
-        },
-        "contents": contents,
-        "generationConfig": {
-            "temperature": 0.7,
-            "maxOutputTokens": 1024,
-            "topP": 0.95,
-        },
-    }
-
     try:
-        async with httpx.AsyncClient(timeout=45.0) as client:
-            response = await client.post(endpoint, json=payload)
-            
-            if response.status_code != 200:
-                err_data = response.json()
-                msg = err_data.get("error", {}).get("message", "Unknown Gemini error")
-                return JSONResponse(
-                    status_code=response.status_code,
-                    content={"reply": f"🤖 Gemini Error: {msg}", "status": "error"}
-                )
-            
-            data = response.json()
-            reply_text = (
-                data.get("candidates", [{}])[0]
-                .get("content", {})
-                .get("parts", [{}])[0]
-                .get("text", "")
+        # Use simple model generation for now (stateless proxy)
+        # In a real app, we'd use start_chat() for session management
+        model = genai.GenerativeModel(
+            model_name=settings.model_name,
+            system_instruction=req.system_context if req.system_context else None
+        )
+
+        # Convert history to SDK format if needed
+        # Our frontend history is already formatted for Gemini (role, parts: [{text}])
+        # genai SDK expects [{'role': 'user', 'parts': ['text']}]
+        formatted_history = []
+        for h in req.history:
+            formatted_history.append({
+                "role": "user" if h["role"] == "user" else "model",
+                "parts": [h["parts"][0]["text"]]
+            })
+
+        response = await model.generate_content_async(
+            contents=formatted_history + [{"role": "user", "parts": [req.message]}],
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.7,
+                max_output_tokens=1024,
+                top_p=0.95,
             )
+        )
 
-            if not reply_text:
-                return ChatResponse(reply="I'm sorry, I couldn't generate a response. Please try again.", status="error")
+        if not response.text:
+            return ChatResponse(reply="I'm sorry, I couldn't generate a response. Please try again.", status="error")
 
-            return ChatResponse(reply=reply_text)
+        return ChatResponse(reply=response.text)
 
-    except httpx.ReadTimeout:
-        return JSONResponse(status_code=504, content={"reply": "⏳ Request timed out. Gemini is taking too long to respond.", "status": "error"})
     except Exception as e:
-        return JSONResponse(status_code=500, content={"reply": f"💥 Server Error: {str(e)}", "status": "error"})
+        return JSONResponse(
+            status_code=500, 
+            content={"reply": f"💥 Server Error: {str(e)}", "status": "error"}
+        )
 
 
-# ── Entry Point ────────────────────────────────────────────────────
+# ── Entry Point ───────────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
-
-    port = int(os.environ.get("PORT", 8080))
-    uvicorn.run("server:app", host="0.0.0.0", port=port, reload=False)
+    uvicorn.run("server:app", host="0.0.0.0", port=settings.port, reload=False)
