@@ -103,7 +103,7 @@ function navigateTo(section) {
       break;
     case 'map':
       if (!mapLoaded) {
-        initMap('map-container', appConfig.maps_api_key);
+        initMap('map-container', appConfig.maps_api_key, appConfig.maps_id);
         renderTransitInfo();
         mapLoaded = true;
       }

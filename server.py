@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     firebase_app_id: str = ""
     firebase_measurement_id: str = ""
     
+    # Map ID for Advanced Markers
+    maps_id: str = "TRIAL_MAP_ID" # Fallback
+    
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 settings = Settings()
@@ -102,6 +105,7 @@ async def get_config():
     """Expose public API keys to the frontend."""
     return {
         "maps_api_key": settings.maps_api_key,
+        "maps_id": settings.maps_id,
         "firebase": {
             "apiKey": settings.firebase_api_key,
             "authDomain": settings.firebase_auth_domain,

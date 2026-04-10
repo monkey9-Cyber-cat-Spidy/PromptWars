@@ -73,12 +73,12 @@ graph TD
 
 | Service | Impact | Implementation |
 |---|---|---|
-| **Gemini 3.1 Flash-Lite** | **Intelligence** | Uses a 2,000-token system context containing venue geometry, policies, and transit patterns. |
-| **Maps JavaScript API** | **Spatial UX** | High-fidelity satellite view with **Advanced Markers** and custom HTML info windows for live gate stats. |
-| **Firebase Analytics** | **Telemetry** | Custom event logging for `screen_view`, `search_queries`, and `map_interactions`. |
-| **Firebase Remote Config** | **Live Alerting** | Real-time parameter sync for the **Venue Alert Banner** (pushing emergency notices without code changes). |
-| **Google Cloud Run** | **Scale** | Fully containerized deployment with server-side environment management. |
-| **Google Fonts** | **Aesthetics** | Modern typography system using `Inter` and `Outfit` for a premium feel. |
+| **Gemini 3.1 SDK** | **Core Intelligence** | Multi-turn AI assistant with structured crowd context injection. |
+| **Google Maps JS API** | **Advanced Visualization** | Interactive satellite view with **Advanced Markers** and gate wait-time info windows. |
+| **Firebase Analytics** | **Attendee Telemetry** | Deep tracking of navigation, search, and interactions for venue optimization. |
+| **Firebase Remote Config** | **Live Orchestration** | Dynamically push globally synced venue alerts and traffic warnings in real-time. |
+| **Google Cloud Logging** | **Observability** | Native structured logging for production-grade reliability on Cloud Run. |
+| **Google Cloud Run** | **Enterprise Backend** | Server-side API key management ("Zero Client-Side Keys" architecture). |
 
 ---
 
@@ -106,6 +106,25 @@ StadiumSmart is designed to look like a premium broadcast tool.
 
 ### 3. Security & Best Practices
 - **Evidence**: The **"Zero Client-Side Keys"** policy. Look at `index.html` — there are zero hardcoded strings for IDs or keys. Everything is bootstrapped at runtime from a secure environment.
+
+---
+
+## 🔒 Environment Variables
+
+For both local development (`.env`) and Cloud Run deployment, the following variables are required:
+
+| Variable | Source |
+|---|---|
+| `GEMINI_API_KEY` | Google AI Studio |
+| `MAPS_API_KEY` | Google Cloud Console (Maps JS API) |
+| `MAPS_ID` | Google Map Management (hex string) |
+| `FIREBASE_API_KEY` | Firebase Project Settings |
+| `FIREBASE_AUTH_DOMAIN` | Firebase Project Settings |
+| `FIREBASE_PROJECT_ID` | Firebase Project Settings |
+| `FIREBASE_STORAGE_BUCKET` | Firebase Project Settings |
+| `FIREBASE_MESSAGING_SENDER_ID` | Firebase Cloud Messaging Settings |
+| `FIREBASE_APP_ID` | Firebase Web App Settings |
+| `FIREBASE_MEASUREMENT_ID` | GA4 Measurement / Firebase Settings |
 
 ---
 

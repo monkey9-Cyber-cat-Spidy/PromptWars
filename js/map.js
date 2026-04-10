@@ -7,7 +7,7 @@ import { getCrowdData, getCrowdLevelLabel } from './crowd.js';
 let map;
 let markers = [];
 
-export async function initMap(containerId, apiKey) {
+export async function initMap(containerId, apiKey, mapsId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -25,7 +25,7 @@ export async function initMap(containerId, apiKey) {
     map = new Map(container, {
       center: VENUE.coords,
       zoom: 17,
-      mapId: "STADIUM_SMART_MAP_ID", // For Advanced Markers
+      mapId: mapsId || "STADIUM_SMART_TRIAL", // For Advanced Markers
       mapTypeId: 'hybrid',
       tilt: 45,
       heading: 0,
